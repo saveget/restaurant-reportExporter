@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>ครัว - สเตชั่น <span th:text="${station}">Grill</span></title>
+    <style>
+        /* Reset เบื้องต้น */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff8f0;
+            color: #4a2e00;
+            margin: 20px;
+        }
+
+        h2 {
+            color: #d84315; /* แดงเข้ม */
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+
+        label {
+            font-weight: 600;
+            margin-right: 10px;
+            font-size: 1rem;
+            color: #bf360c; /* แดงส้มเข้ม */
+        }
+
+        select#table-select {
+            padding: 6px 12px;
+            font-size: 1rem;
+            border: 2px solid #ff6f00; /* ส้มเข้ม */
+            border-radius: 6px;
+            background-color: #fff3e0; /* เหลืองอ่อน */
+            color: #bf360c;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+            margin-bottom: 25px;
+        }
+        select#table-select:hover, select#table-select:focus {
+            border-color: #e65100; /* ส้มแดงเข้ม */
+            outline: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff3e0; /* เหลืองอ่อน */
+            box-shadow: 0 0 12px rgba(255, 111, 0, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(90deg, #ff6f00, #d84315);
+            color: white;
+            text-align: left;
+        }
+
+        thead th {
+            padding: 12px 15px;
+            font-weight: 600;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #ffcc80; /* เหลืองสว่าง */
+            transition: background-color 0.25s ease;
+        }
+        tbody tr:hover {
+            background-color: #fff8e1;
+        }
+
+        tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            color: #6d3b00;
+        }
+
+        button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+            color: white;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 5px #ff6f00;
+        }
+
+        button[onclick*="'preparing'"] {
+            background-color: #ff6f00; /* ส้ม */
+        }
+
+        button[onclick*="'done'"] {
+            background-color: #d84315; /* แดง */
+        }
+
+        /* Status Done */
+        td:contains('เสร็จแล้ว') {
+            font-weight: 700;
+            color: #d84315;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                display: none;
+            }
+
+            tbody tr {
+                margin-bottom: 15px;
+                border-bottom: 2px solid #ff6f00;
+                padding: 15px;
+                background-color: #fff3e0;
+                border-radius: 8px;
+                box-shadow: 0 0 5px rgba(255, 111, 0, 0.2);
+            }
+
+            tbody td {
+                padding: 10px 0;
+                text-align: right;
+                position: relative;
+                padding-left: 50%;
+            }
+
+            tbody td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: 45%;
+                padding-left: 10px;
+                font-weight: 600;
+                text-align: left;
+                color: #d84315;
+            }
+        }
+    </style>
+
+    <script th:inline="javascript">
+        const station = [[${station}]];
+
+        async function fetchOrders() {
+            const tableSelect = document.getElementById('table-select');
+            const tableNumber = tableSelect.value;
+            let url = `/api/kitchen/orders?station=${station}`;
+            if (tableNumber) {
+                url += `&tableNumber=${tableNumber}`;
+            }
+            const res = await fetch(url);
+            const data = await res.json();
+            const tbody = document.getElementById('order-tbody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td data-label="Order Item ID">${item.id}</td>
+                  <td data-label="Menu">${item.menuItem.name}</td>
+                  <td data-label="Quantity">${item.quantity}</td>
+                  <td data-label="หมายเลขโต๊ะ">${item.tableNumber}</td>
+                  <td data-label="Status">${item.status}</td>
+                  <td data-label="อัปเดตสถานะ">
+                    ${item.status === 'pending' ? `<button onclick="updateStatus(${item.id}, 'preparing')">เริ่มทำ</button>` : ''}
+                    ${item.status === 'preparing' ? `<button onclick="updateStatus(${item.id}, 'done')">เสร็จแล้ว</button>` : ''}
+                    ${item.status === 'done' ? 'เสร็จแล้ว' : ''}
+                  </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function updateStatus(id, status) {
+            await fetch(`/api/kitchen/orders/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            fetchOrders(); // รีโหลดรายการออเดอร์หลังอัปเดต
+        }
+
+        window.onload = () => {
+            fetchOrders();
+            setInterval(fetchOrders, 10000); // รีเฟรชทุก 10 วินาที
+        }
+    </script>
+</head>
+<body>
+<h2>ออเดอร์สำหรับสเตชั่น: <span th:text="${station}">Grill</span></h2>
+
+<label for="table-select">เลือกโต๊ะ:</label>
+<select id="table-select" onchange="fetchOrders()">
+    <option value="">ทั้งหมด</option>
+    <option value="1">A1</option>
+    <option value="2">A2</option>
+    <option value="3">B1</option>
+    <option value="4">B2</option>
+    <option value="5">C1</option>
+    <!-- เพิ่มโต๊ะตามจริง -->
+</select>
+
+<table>
+    <thead>
+    <tr>
+        <th>Order Item ID</th>
+        <th>Menu</th>
+        <th>Quantity</th>
+        <th>หมายเลขโต๊ะ</th>
+        <th>Status</th>
+        <th>อัปเดตสถานะ</th>
+    </tr>
+    </thead>
+    <tbody id="order-tbody"></tbody>
+</table>
+</body>
+</html>

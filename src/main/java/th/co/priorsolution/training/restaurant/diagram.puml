@@ -1,0 +1,54 @@
+@startuml
+actor Customer
+participant "Order Taker" as OrderTaker
+database "Food Menu" as Menu
+
+participant "Kitchen" as Kitchen
+participant "Grill Station" as Grill
+participant "Pasta Station" as Pasta
+participant "Salad Station" as Salad
+participant "Beverage Station" as Beverage
+
+participant "Waitress" as Waitress
+participant "Table Status System" as TableStatus
+
+== ลูกค้าเข้าร้าน ==
+Waitress -> TableStatus: ตรวจสอบโต๊ะว่าง
+TableStatus --> Waitress: แจ้งโต๊ะว่าง
+Waitress -> Customer: เชิญลูกค้าไปยังโต๊ะ
+Waitress -> TableStatus: อัปเดตโต๊ะเป็น"ไม่ว่าง"
+
+== การสั่งอาหาร ==
+Customer -> Menu: ดูเมนูอาหาร
+Customer -> OrderTaker: สั่งอาหาร
+OrderTaker -> Kitchen: ส่งคำสั่งอาหาร
+OrderTaker -> TableStatus: อัปเดตสถานะโต๊ะเป็น "pending"
+
+== แยกงานแต่ละ Station ==
+Kitchen -> Grill: งาน Grill
+Grill -> TableStatus: อัปเดตสถานะเป็น "prepairing"
+Kitchen -> Pasta: งาน Pasta
+Pasta -> TableStatus: อัปเดตสถานะเป็น "prepairing"
+Kitchen -> Salad: งาน Salad
+Salad -> TableStatus: อัปเดตสถานะเป็น "prepairing"
+Kitchen -> Beverage: งานเครื่องดื่ม
+Beverage -> TableStatus: อัปเดตสถานะเป็น "prepairing"
+
+== เสิร์ฟอาหาร ==
+Grill -> TableStatus: อัปเดตสถานะเป็น "done"
+Grill -> Waitress: ส่ง Grill
+Pasta -> TableStatus: อัปเดตสถานะเป็น "done"
+Pasta -> Waitress: ส่ง Pasta
+Salad -> TableStatus: อัปเดตสถานะเป็น "done"
+Salad -> Waitress: ส่ง Salad
+Beverage -> TableStatus: อัปเดตสถานะเป็น "done"
+Beverage -> Waitress: ส่งเครื่องดื่ม
+Waitress -> Customer: เสิร์ฟอาหาร
+
+== ทานเสร็จ ==
+Customer -> Waitress: ขอชำระเงิน
+Waitress -> Customer: ส่งบิลรายการอาหาร
+Customer -> Waitress: ตรวจสอบรายการอาหาร และชำระเงิน
+Waitress -> TableStatus: อัปเดตโต๊ะเป็น "ว่าง"
+
+@enduml

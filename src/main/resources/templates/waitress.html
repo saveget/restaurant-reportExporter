@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>จัดการโต๊ะ - พนักงาน</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Kanit', Arial, sans-serif;
+            background: #fff8f0; /* พื้นหลังสีอ่อนละมุน */
+            color: #5d3a00; /* สีน้ำตาลเข้ม ให้ความรู้สึกอบอุ่น */
+            padding: 30px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        h2 {
+            color: #bf360c; /* สีแดงเข้ม */
+            text-shadow: 1px 1px 2px rgba(255, 183, 77, 0.5); /* เงาโทนเหลืองส้ม */
+            margin-bottom: 15px;
+        }
+
+        #table-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .table-card {
+            background: #fff3e0; /* เหลืองครีมอ่อน */
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(255, 140, 0, 0.15);
+            padding: 20px 25px;
+            width: 320px;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+        }
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 140, 0, 0.3);
+        }
+
+        .table-card h3 {
+            margin-top: 0;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #e65100; /* ส้มเข้ม */
+        }
+
+        .status {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #43a047; /* เขียวสดใสสำหรับว่าง */
+            transition: color 0.3s ease;
+        }
+        .status.occupied {
+            color: #d84315; /* แดงอมส้ม สำหรับไม่ว่าง */
+        }
+
+        ul {
+            padding-left: 18px;
+            margin: 10px 0;
+            color: #6d4c41; /* น้ำตาลกลาง */
+        }
+
+        ul li {
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        p strong {
+            color: #bf360c;
+            font-size: 1.15rem;
+        }
+
+        button {
+            background: #ff7043; /* ส้มอ่อน */
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 8px 15px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin: 5px 8px 5px 0;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(255, 112, 67, 0.6);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+            user-select: none;
+        }
+        button:hover:not(:disabled) {
+            background: #e64a19; /* ส้มแดงเข้ม */
+            box-shadow: 0 6px 14px rgba(230, 74, 25, 0.9);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        #table-list {
+            margin-bottom: 30px;
+        }
+        #table-list button {
+            background: #ffa726; /* เหลืองส้ม */
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100px;
+            box-shadow: 0 3px 6px rgba(255, 167, 38, 0.6);
+        }
+        #table-list button:hover:not(:disabled) {
+            background: #fb8c00; /* เหลืองส้มเข้ม */
+        }
+
+        #order-details {
+            background: #fff3e0; /* เหลืองครีมอ่อนเหมือนการ์ด */
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.15);
+            max-width: 500px;
+            color: #6d4c41;
+            margin-top: 20px;
+        }
+        #order-details h3 {
+            margin-top: 0;
+            color: #d84315;
+        }
+        #order-details ul {
+            margin-bottom: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            #table-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .table-card {
+                width: 100%;
+                max-width: 350px;
+            }
+            #table-list button {
+                width: 80px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h2>จัดการโต๊ะในร้าน</h2>
+<div id="table-container"></div>
+
+<h2>ใบเสร็จ</h2>
+<div id="order-details"></div>
+
+<script>
+    // โหลดข้อมูลโต๊ะทั้งหมด พร้อมรายการอาหารและปุ่มจัดการ
+    async function loadTables() {
+      const container = document.getElementById("table-container");
+      container.innerHTML = "กำลังโหลดข้อมูลโต๊ะ...";
+
+      try {
+        const res = await fetch("/api/tables");
+        if (!res.ok) throw new Error("โหลดข้อมูลโต๊ะไม่สำเร็จ");
+        const tables = await res.json();
+
+        container.innerHTML = "";
+
+        for (const table of tables) {
+          const card = document.createElement("div");
+          card.className = "table-card";
+
+          const header = document.createElement("h3");
+          header.textContent = `โต๊ะ ${table.tableNum}`;
+          card.appendChild(header);
+
+          const statusText = document.createElement("p");
+          statusText.className = "status " + (table.status === "occupied" ? "occupied" : "");
+          statusText.textContent = `สถานะ: ${table.status === "occupied" ? "ไม่ว่าง" : "ว่าง"}`;
+          card.appendChild(statusText);
+
+          const toggleBtn = document.createElement("button");
+          toggleBtn.textContent = "เปลี่ยนสถานะโต๊ะ";
+          toggleBtn.onclick = async () => {
+            toggleBtn.disabled = true;
+            await toggleTableStatus(table.id);
+            toggleBtn.disabled = false;
+          };
+          card.appendChild(toggleBtn);
+
+          try {
+            const orderRes = await fetch(`/api/order/details/by-table/${table.id}`);
+            if (orderRes.ok) {
+              const orderData = await orderRes.json();
+
+              if (orderData.items && orderData.items.length > 0) {
+                const list = document.createElement("ul");
+               orderData.items.forEach(item => {
+                  const li = document.createElement("li");
+                  li.style.marginBottom = "10px"; // เว้นบรรทัดหน่อย
+
+                  // ชื่อเมนู + จำนวน + ราคา
+                  const itemInfo = document.createElement("div");
+                  itemInfo.textContent = `${item.menuName} x ${item.quantity} = ${item.subtotal} บาท`;
+                  li.appendChild(itemInfo);
+
+                  // สถานะ แยกบรรทัดล่าง
+                  const statusLine = document.createElement("div");
+                  statusLine.textContent = `สถานะ: ${item.status}`;
+                  statusLine.style.fontSize = "0.9rem";
+                  statusLine.style.color = "#d84315"; // สีแดงส้ม (เปลี่ยนสีตามชอบได้)
+                  li.appendChild(statusLine);
+
+                  list.appendChild(li);
+                });
+
+                card.appendChild(list);
+
+                const total = document.createElement("p");
+                total.innerHTML = `<strong>รวมทั้งหมด: ${orderData.total} บาท</strong>`;
+                card.appendChild(total);
+
+                // ปุ่มออกใบเสร็จ เปลี่ยนเป็นแสดงใน div ด้านล่าง ไม่ใช่ alert
+                const billBtn = document.createElement("button");
+                billBtn.textContent = "ออกใบเสร็จ";
+                billBtn.onclick = () => {
+                  showBill(table.id);
+                };
+                card.appendChild(billBtn);
+
+                // ปุ่มเคลียร์โต๊ะ
+                const clearBtn = document.createElement("button");
+                clearBtn.textContent = "เคลียร์โต๊ะ";
+                clearBtn.onclick = async () => {
+                  if (confirm(`คุณแน่ใจจะเคลียร์โต๊ะ ${table.id} หรือไม่?`)) {
+                    clearBtn.disabled = true;
+                    await clearTable(table.id);
+                    clearBtn.disabled = false;
+                  }
+                };
+                card.appendChild(clearBtn);
+              } else {
+                const p = document.createElement("p");
+                p.textContent = "ยังไม่มีออเดอร์";
+                card.appendChild(p);
+              }
+            } else {
+              const p = document.createElement("p");
+              p.textContent = "ยังไม่มีออเดอร์";
+              card.appendChild(p);
+            }
+          } catch (e) {
+            const p = document.createElement("p");
+            p.textContent = "เกิดข้อผิดพลาดในการโหลดออเดอร์";
+            card.appendChild(p);
+          }
+
+          container.appendChild(card);
+        }
+
+      } catch (err) {
+        container.innerHTML = "เกิดข้อผิดพลาด: " + err.message;
+      }
+    }
+
+    async function toggleTableStatus(tableId) {
+      const res = await fetch(`/api/tables/toggle-status/${tableId}`, { method: "POST" });
+      if (!res.ok) alert("เปลี่ยนสถานะโต๊ะไม่สำเร็จ");
+      else await loadTables();
+    }
+
+    async function clearTable(tableId) {
+      const res = await fetch(`/api/waitress/reset/${tableId}`, { method: "POST" });
+      if (!res.ok) {
+        alert("เกิดข้อผิดพลาดในการล้างออเดอร์");
+        return;
+      }
+
+      const res2 = await fetch(`/api/table/set-status/${tableId}?status=available`, { method: "POST" });
+      if (!res2.ok) alert("เปลี่ยนสถานะโต๊ะเป็นว่างไม่สำเร็จ");
+
+      alert(`ล้างออเดอร์โต๊ะ ${tableId} เรียบร้อยแล้ว`);
+      await loadTables();
+
+      // ถ้าแสดงรายละเอียดโต๊ะนั้นอยู่ ให้เคลียร์รายละเอียดออกด้วย
+      const orderDetails = document.getElementById("order-details");
+      const currentHeader = orderDetails.querySelector("h3");
+      if (currentHeader && currentHeader.textContent.includes(`โต๊ะ ${tableId}`)) {
+        orderDetails.innerHTML = "";
+      }
+    }
+
+    async function loadTableDetails(tableId) {
+      const container = document.getElementById("order-details");
+      container.innerHTML = "กำลังโหลดข้อมูลโต๊ะ " + tableId + "...";
+
+      try {
+        const res = await fetch(`/api/order/details/by-table/${tableId}`);
+        if (!res.ok) throw new Error("โหลดข้อมูลไม่สำเร็จ");
+
+        const data = await res.json();
+
+        let html = `<h3>รายละเอียดโต๊ะ ${tableId} - สถานะ: ${data.status || 'ว่าง'}</h3>`;
+
+        if (data.items && data.items.length > 0) {
+          html += "<ul>";
+          data.items.forEach(item => {
+          html += `<li>
+            <div>${item.menuName} x ${item.quantity} = ${item.subtotal} บาท</div>
+            <div style="font-size:0.9rem; color:#d84315;">สถานะ: ${item.status}</div>
+          </li>`;
+        });
+
+          html += "</ul>";
+          html += `<p><strong>รวมทั้งหมด: ${data.total} บาท</strong></p>`;
+        } else {
+          html += "<p>โต๊ะว่าง ไม่มีรายการอาหาร</p>";
+        }
+
+        container.innerHTML = html;
+
+      } catch (err) {
+        container.innerHTML = "เกิดข้อผิดพลาด: " + err.message;
+      }
+    }
+
+    // ฟังก์ชันแสดงใบเสร็จแทน alert
+    async function showBill(tableId) {
+      const container = document.getElementById("order-details");
+
+      try {
+        const res = await fetch(`/api/order/details/by-table/${tableId}`);
+        if (!res.ok) throw new Error("โหลดข้อมูลใบเสร็จไม่สำเร็จ");
+
+        const data = await res.json();
+
+        let html = `<h3>ใบเสร็จโต๊ะ ${tableId}</h3>`;
+
+        if (data.items && data.items.length > 0) {
+          html += "<ul>";
+          data.items.forEach(item => {
+          html += `<li>
+            <div>${item.menuName} x ${item.quantity} = ${item.subtotal} บาท</div>
+          </li>`;
+        });
+
+          html += "</ul>";
+          html += `<p><strong>รวมทั้งหมด: ${data.total} บาท</strong></p>`;
+        } else {
+          html += "<p>ไม่มีรายการอาหารสำหรับใบเสร็จ</p>";
+        }
+
+        container.innerHTML = html;
+
+      } catch (err) {
+        container.innerHTML = "เกิดข้อผิดพลาด: " + err.message;
+      }
+    }
+
+    async function refreshTablesPeriodically() {
+      await loadTables(); // โหลดตอนแรก
+      setInterval(loadTables, 5000); // ทุก 5 วินาทีจะเรียก loadTables ใหม่
+    }
+
+    // เรียกตอนเริ่ม
+    refreshTablesPeriodically();
+
+
+    loadTables();
+</script>
+
+</body>
+</html>

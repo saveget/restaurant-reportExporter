@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>เมนูอาหาร - ระบบสั่งอาหารร้านอาหาร</title>
+    <style>
+        /* Reset เบื้องต้น */
+        * {
+          box-sizing: border-box;
+        }
+        body {
+          margin: 20px;
+          font-family: 'Kanit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: #fff6ed;
+          color: #4a2c23;
+        }
+        h1, h2, h3 {
+          color: #d84315; /* แดงเข้ม */
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+
+        header {
+          background: linear-gradient(90deg, #e63946, #f4a261);
+          color: white;
+          padding: 1.5rem 2rem;
+          text-align: center;
+          box-shadow: 0 4px 6px rgb(230 57 70 / 0.5);
+          user-select: none;
+        }
+        main {
+          max-width: 1200px;
+          margin: 2rem auto;
+          padding: 0 1rem;
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 2rem;
+        }
+
+        section#menu-section {
+          grid-column: 1 / 3;
+        }
+
+        label[for="tableSelect"] {
+          font-weight: 600;
+          font-size: 1.1rem;
+          color: #e76f51;
+          margin-bottom: 0.5rem;
+          display: inline-block;
+        }
+        select#tableSelect {
+          padding: 0.5rem 1rem;
+          font-size: 1rem;
+          border-radius: 6px;
+          border: 2px solid #e76f51;
+          color: #4a2c23;
+          font-weight: 600;
+          margin-bottom: 1.5rem;
+          width: 160px;
+          cursor: pointer;
+        }
+
+       .menu-container {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+          gap: 1.5rem;
+          justify-content: center;
+          margin: 0 auto;
+          padding: 1rem;
+          max-width: 1000px;
+        }
+        .menu-card {
+          background: #fffaf3;
+          border: 2px solid #f4a261;
+          border-radius: 16px;
+          padding: 1rem;
+          box-shadow: 0 4px 6px rgba(244, 162, 97, 0.4);
+          text-align: center;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .menu-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 15px rgb(244 162 97 / 0.7);
+        }
+        .menu-card h3 {
+          font-size: 1.2rem;
+          margin-bottom: 0.5rem;
+          color: #e76f51;
+        }
+        .menu-card p {
+          font-weight: 700;
+          margin: 0.3rem 0 1rem 0;
+          color: #9c4221;
+        }
+        .menu-card button {
+          background: #e63946;
+          border: none;
+          color: white;
+          font-weight: 700;
+          padding: 0.5rem 0.8rem;
+          border-radius: 8px;
+          cursor: pointer;
+          width: 100%;
+          transition: background-color 0.3s ease;
+          font-size: 1rem;
+        }
+        .menu-card button:hover:not(:disabled) {
+          background: #b0262f;
+        }
+
+        .menu-card p[style*="color:red"] {
+          font-weight: 700;
+          margin-top: 1rem;
+        }
+
+        #cart {
+          background: #fff3e0;
+          border: 2px solid #f4a261;
+          border-radius: 12px;
+          padding: 1rem 1.5rem;
+          box-shadow: 0 5px 8px rgb(244 162 97 / 0.5);
+          max-height: 400px;
+          overflow-y: auto;
+        }
+        #cart h2 {
+          color: #e76f51;
+          margin-bottom: 1rem;
+        }
+        #cart-list {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 1rem 0;
+          max-height: 250px;
+          overflow-y: auto;
+        }
+        #cart-list li {
+          display: flex;
+          justify-content: space-between;
+          background: #fbe9e7;
+          padding: 0.5rem 0.8rem;
+          margin-bottom: 0.6rem;
+          border-radius: 8px;
+          color: #6a3c23;
+          font-weight: 600;
+        }
+       #cart-list li button {
+          background: #e63946;
+          border: none;
+          color: white;
+          font-weight: 600;
+          border-radius: 6px;
+          cursor: pointer;
+          padding: 2px 6px;
+          font-size: 0.8rem;
+          line-height: 1;
+          transition: background-color 0.2s ease;
+        }
+
+
+        #cart-list li button:hover {
+          background-color: #b0262f;
+        }
+        #cart button {
+          background: #e76f51;
+          width: 100%;
+          border: none;
+          padding: 0.7rem;
+          border-radius: 10px;
+          color: white;
+          font-weight: 700;
+          font-size: 1.1rem;
+          cursor: pointer;
+          box-shadow: 0 4px 8px rgb(231 111 81 / 0.7);
+          transition: background-color 0.3s ease;
+        }
+        #cart button:hover {
+          background: #b14b37;
+        }
+
+        #order-status {
+          grid-column: 3 / 4;
+          background: #fff3e0;
+          border: 2px solid #f4a261;
+          border-radius: 12px;
+          padding: 1rem 1.5rem;
+          box-shadow: 0 5px 8px rgb(244 162 97 / 0.5);
+          min-height: 100px;
+          color: #9c4221;
+        }
+        #order-status h2 {
+          color: #e76f51;
+        }
+        #order-status-text {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin-top: 0.5rem;
+        }
+
+        #table-orders {
+          grid-column: 1 / 4;
+          margin-top: 2rem;
+          background: #fff3e0;
+          border: 2px solid #f4a261;
+          border-radius: 12px;
+          padding: 1rem 1.5rem;
+          box-shadow: 0 5px 8px rgb(244 162 97 / 0.5);
+          color: #6a3c23;
+        }
+        #table-orders h2 {
+          color: #e76f51;
+        }
+        #table-orders-list > div {
+          background: #fbe9e7;
+          border-radius: 10px;
+          padding: 1rem;
+          margin-bottom: 1rem;
+          box-shadow: 0 4px 6px rgb(244 162 97 / 0.4);
+        }
+        #table-orders-list table {
+          border-collapse: collapse;
+          width: 100%;
+        }
+        #table-orders-list th,
+        #table-orders-list td {
+          border: 1px solid #f4a261;
+          padding: 0.6rem 0.8rem;
+          text-align: center;
+        }
+        #table-orders-list th {
+          background: #e76f51;
+          color: white;
+        }
+        #table-orders-list strong {
+          display: block;
+          margin-top: 0.5rem;
+          text-align: right;
+          color: #b14b37;
+          font-size: 1.1rem;
+        }
+
+        #total-section {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #e76f51, #f4a261);
+          color: white;
+          padding: 1rem 2rem;
+          border-radius: 12px;
+          box-shadow: 0 8px 16px rgba(231, 111, 81, 0.6);
+          max-width: 320px;
+          font-weight: 700;
+          z-index: 1000;
+          user-select: none;
+          transition: transform 0.2s ease;
+        }
+        #total-section:hover {
+          transform: scale(1.05);
+          box-shadow: 0 12px 24px rgba(231, 111, 81, 0.9);
+        }
+        #total-section div {
+          font-size: 1.3rem;
+          letter-spacing: 0.02em;
+          margin-bottom: 0.8rem;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        #total-section button {
+          width: 100%;
+          background-color: #b14b37;
+          border: none;
+          color: white;
+          font-weight: 700;
+          font-size: 1.1rem;
+          padding: 0.6rem 0;
+          border-radius: 10px;
+          cursor: pointer;
+          box-shadow: 0 4px 8px rgba(177, 75, 55, 0.7);
+          transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        #total-section button:hover {
+          background-color: #7a2d22;
+          box-shadow: 0 6px 12px rgba(122, 45, 34, 0.8);
+        }
+
+        /* Scrollbar custom */
+        #cart-list::-webkit-scrollbar,
+        #table-orders-list::-webkit-scrollbar {
+          width: 8px;
+        }
+        #cart-list::-webkit-scrollbar-thumb,
+        #table-orders-list::-webkit-scrollbar-thumb {
+          background-color: #f4a261;
+          border-radius: 10px;
+        }
+        #cart-list::-webkit-scrollbar-track,
+        #table-orders-list::-webkit-scrollbar-track {
+          background-color: #fff6ed;
+        }
+        .menu-card button.remove-btn {
+          width: auto;
+          padding: 0.3rem 0.6rem;
+          font-size: 0.9rem;
+          background-color: #888;
+          margin-top: 0.3rem;
+        }
+
+        .menu-card button.remove-btn:hover {
+          background-color: #555;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>เมนูอาหาร</h1>
+
+<label for="tableSelect">เลือกโต๊ะ:</label>
+<select id="tableSelect"></select>
+
+<div class="menu-container" id="menu-container"></div>
+<div>
+    <h3> </h3>
+</div>
+<div id="cart">
+    <h2>ตะกร้าของคุณ</h2>
+    <ul id="cart-list"></ul>
+    <button onclick="submitOrder()">ยืนยันการสั่งซื้อ</button>
+</div>
+<h3> </h3>
+<div id="order-status">
+    <h2>สถานะคำสั่งซื้อ</h2>
+    <p id="order-status-text">ยังไม่มีคำสั่งซื้อ</p>
+</div>
+
+<div id="table-orders">
+    <h2>คำสั่งซื้อของโต๊ะนี้</h2>
+    <div id="table-orders-list"></div> <!-- จะใส่ตารางที่สร้างด้วย JS -->
+</div>
+
+<div id="total-section" style="display:none;">
+    <div><strong>ยอดรวมทั้งหมด:</strong> <span id="total-amount">0</span> บาท</div>
+    <button onclick="callWaiter()">เรียกพนักงานเพื่อชำระบิล</button>
+</div>
+
+
+<script>
+    const cart = [];
+    let currentOrderId = null;
+
+    async function loadMenu() {
+        try {
+            const response = await fetch('http://localhost:8080/api/menu/available');
+            const menuItems = await response.json();
+
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
+
+            menuItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'menu-card';
+                card.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <p>ราคา: ${item.price} บาท</p>
+                    ${item.isAvailable
+                        ? `<button onclick="addToCart(${item.id}, '${item.name}', ${item.price})">สั่งอาหาร</button>`
+                        : '<p style="color:red;">หมด</p>'}
+                `;
+                container.appendChild(card);
+            });
+        } catch (error) {
+            console.error('โหลดเมนูล้มเหลว:', error);
+        }
+    }
+
+    async function loadTables() {
+        try {
+            const response = await fetch('http://localhost:8080/api/tables');
+            const tables = await response.json();
+            const select = document.getElementById('tableSelect');
+            select.innerHTML = '';
+
+            tables.forEach(table => {
+                const option = document.createElement('option');
+                option.value = table.id;
+                option.textContent = `โต๊ะ ${table.tableNum} (${table.status})`;
+                select.appendChild(option);
+            });
+
+            const savedTableId = localStorage.getItem('selectedTable');
+            if (savedTableId && tables.some(t => t.id == savedTableId)) {
+                select.value = savedTableId;
+            } else if (tables.length > 0) {
+                select.value = tables[0].id;
+                localStorage.setItem('selectedTable', tables[0].id);
+            }
+
+            loadOrdersByTable(select.value);
+        } catch (error) {
+            console.error('โหลดโต๊ะล้มเหลว:', error);
+        }
+    }
+
+    function loadCart() {
+        const saved = localStorage.getItem('cart');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            cart.splice(0, cart.length, ...parsed);
+        }
+    }
+
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    function saveSelectedTable() {
+        const tableId = document.getElementById('tableSelect').value;
+        localStorage.setItem('selectedTable', tableId);
+        loadOrdersByTable(tableId);
+    }
+
+    function addToCart(id, name, price) {
+        cart.push({ id, name, price });
+        updateCartDisplay();
+        saveCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        updateCartDisplay();
+        saveCart();
+    }
+
+    function updateCartDisplay() {
+        const cartList = document.getElementById('cart-list');
+        cartList.innerHTML = '';
+        cart.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `${item.name} - ${item.price} บาท <button class="remove-btn" onclick="removeFromCart(${index})">ลบ</button>`;
+            cartList.appendChild(li);
+        });
+    }
+
+    function groupCartItems() {
+        const grouped = {};
+        cart.forEach(item => {
+            if (!grouped[item.id]) {
+                grouped[item.id] = { menuItemId: item.id, quantity: 1 };
+            } else {
+                grouped[item.id].quantity++;
+            }
+        });
+        return Object.values(grouped);
+    }
+
+    async function submitOrder() {
+        if (cart.length === 0) {
+            alert("กรุณาเลือกเมนูก่อนสั่งซื้อ");
+            return;
+        }
+
+        const tableId = parseInt(document.getElementById('tableSelect').value);
+
+        const orderPayload = {
+            tableId: tableId,
+            items: groupCartItems()
+        };
+
+        try {
+            const response = await fetch('http://localhost:8080/api/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                currentOrderId = result.orderId;
+                alert("ส่งคำสั่งซื้อเรียบร้อยแล้ว!");
+                cart.length = 0;
+                updateCartDisplay();
+                saveCart();
+                checkOrderStatus();
+                loadOrdersByTable(tableId);
+            } else {
+                alert("เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ");
+            }
+        } catch (error) {
+            alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+        }
+    }
+
+    async function checkOrderStatus() {
+        if (!currentOrderId) {
+            document.getElementById('order-status-text').textContent = 'ยังไม่มีคำสั่งซื้อ';
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/order/status/${currentOrderId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.status) {
+                    document.getElementById('order-status-text').textContent = `สถานะ: ${data.status}`;
+                } else {
+                    document.getElementById('order-status-text').textContent = 'ไม่พบสถานะคำสั่งซื้อ';
+                }
+            } else {
+                document.getElementById('order-status-text').textContent = 'ไม่สามารถโหลดสถานะคำสั่งซื้อได้';
+            }
+        } catch (error) {
+            console.error("ไม่สามารถโหลดสถานะคำสั่งซื้อได้:", error);
+            document.getElementById('order-status-text').textContent = 'เกิดข้อผิดพลาดในการโหลดสถานะ';
+        }
+
+        setTimeout(checkOrderStatus, 10000);
+    }
+
+   async function loadOrdersByTable(tableId) {
+    try {
+        const response = await fetch(`http://localhost:8080/api/order/by-table/${tableId}`);
+        if (!response.ok) throw new Error('โหลดคำสั่งซื้อโต๊ะล้มเหลว');
+        const orders = await response.json();
+
+        const container = document.getElementById('table-orders-list');
+        container.innerHTML = '';
+
+        if (orders.length === 0) {
+            container.innerHTML = '<p>โต๊ะนี้ยังไม่มีคำสั่งซื้อ</p>';
+            document.getElementById('order-status-text').textContent = 'ยังไม่มีคำสั่งซื้อ';
+            currentOrderId = null;
+
+            // ซ่อนยอดรวม
+            document.getElementById('total-section').style.display = 'none';
+            return;
+        }
+
+        let grandTotal = 0;  // เก็บยอดรวมทั้งหมดของทุกคำสั่งซื้อ
+
+        orders.forEach(order => {
+            const orderDiv = document.createElement('div');
+            orderDiv.style.marginBottom = '1rem';
+
+            let total = 0;
+            let itemsHtml = '';
+
+            if (order.items && order.items.length > 0) {
+                order.items.forEach(item => {
+                    const price = item.menuItem.price;
+                    const name = item.menuItem.name;
+                    const quantity = item.quantity;
+                    const subtotal = price * quantity;
+                    total += subtotal;
+                });
+            }
+
+            grandTotal += total;  // รวมยอดทั้งหมด
+
+            // สร้างตารางแสดงรายการอาหารของคำสั่งซื้อ
+            order.items.forEach(item => {
+                const price = item.menuItem.price;
+                const name = item.menuItem.name;
+                const quantity = item.quantity;
+                const subtotal = price * quantity;
+
+                itemsHtml += `
+                    <tr>
+                        <td>${name}</td>
+                        <td>${price} บาท</td>
+                        <td>${quantity}</td>
+                        <td>${subtotal} บาท</td>
+                    </tr>
+                `;
+            });
+
+            orderDiv.innerHTML = `
+                <h3>คำสั่งซื้อ #${order.id} - สถานะ: ${order.status}</h3>
+                <table border="1" cellpadding="5" cellspacing="0" style="width: 100%; margin-bottom: 0.5rem;">
+                    <thead>
+                        <tr>
+                            <th>ชื่อเมนู</th>
+                            <th>ราคา</th>
+                            <th>จำนวน</th>
+                            <th>รวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <strong>รวมทั้งหมด: ${total} บาท</strong>
+            `;
+
+            container.appendChild(orderDiv);
+        });
+
+        // แสดงยอดรวมทั้งหมด
+        const totalSection = document.getElementById('total-section');
+        const totalAmount = document.getElementById('total-amount');
+        totalAmount.textContent = grandTotal;
+        totalSection.style.display = 'block';
+
+        const latestOrder = orders[orders.length - 1];
+        currentOrderId = latestOrder.id;
+        checkOrderStatus();
+
+    } catch (error) {
+        console.error(error);
+        const container = document.getElementById('table-orders-list');
+        container.innerHTML = '<p>ไม่สามารถโหลดคำสั่งซื้อโต๊ะได้</p>';
+
+        // ซ่อนยอดรวม
+        document.getElementById('total-section').style.display = 'none';
+    }
+}
+
+
+
+    async function initialLoad() {
+        await loadTables();
+        loadCart();
+        updateCartDisplay();
+        const savedTableId = localStorage.getItem('selectedTable');
+        if (savedTableId) loadOrdersByTable(savedTableId);
+        await loadMenu();
+    }
+
+    document.getElementById('tableSelect').addEventListener('change', () => {
+        saveSelectedTable();
+    });
+
+    initialLoad();
+    // รีโหลดข้อมูลทุก 5 วินาที
+    setInterval(() => {
+      loadMenu();
+      loadTables();
+      saveSelectedTable();
+      checkOrderStatus();
+
+      // รีโหลดคำสั่งซื้อโต๊ะที่เลือกด้วย
+      const tableId = document.getElementById('tableSelect').value;
+      loadOrdersByTable(tableId);
+    }, 5000);
+
+</script>
+
+</body>
+</html>
