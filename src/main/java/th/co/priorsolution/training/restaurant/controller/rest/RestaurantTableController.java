@@ -16,9 +16,6 @@ public class RestaurantTableController {
 
     private final RestaurantTableService tableService;
 
-    @Autowired
-    private OrderItemRepository orderItemRepository;
-
     public RestaurantTableController(RestaurantTableService tableService) {
         this.tableService = tableService;
     }
@@ -27,7 +24,6 @@ public class RestaurantTableController {
     public List<RestaurantTableEntity> getAllTables() {
         return tableService.getAllTables();
     }
-
 
     @PostMapping("/toggle-status/{tableId}")
     public Map<String, String> toggleTableStatus(@PathVariable Integer tableId) {
@@ -38,8 +34,4 @@ public class RestaurantTableController {
             return Map.of("message", "ไม่สามารถเปลี่ยนสถานะโต๊ะได้: " + e.getMessage());
         }
     }
-
-
-
-
 }

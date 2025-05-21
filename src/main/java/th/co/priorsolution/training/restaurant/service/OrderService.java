@@ -17,6 +17,8 @@ import th.co.priorsolution.training.restaurant.repository.RestaurantTableReposit
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -112,6 +114,66 @@ public class OrderService {
             return true;
         }
         return false;
+    }
+
+
+    public Map<String, String> resetAllOrders() {
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        return Map.of("message", "รีเซ็ตคำสั่งซื้อทั้งหมดเรียบร้อยแล้ว");
+    }
+
+    public Map<String, Object> getOrderDetailsByTable(Integer tableId) {
+        List<OrderEntity> orders = orderRepository.findByTableId(tableId);
+        if (orders.isEmpty()) {
+            throw new RuntimeException("ไม่พบคำสั่งซื้อของโต๊ะนี้");
+        }
+
+        OrderEntity latestOrder = orders.get(orders.size() - 1);
+        var items = orderItemRepository.findByOrder_Id(latestOrder.getId());
+
+        List<Map<String, Object>> itemList = items.stream().map(item -> {
+            Map<String, Object> map = Map.of(
+                    "menuName", item.getMenuItem().getName(),
+                    "price", (Object) item.getMenuItem().getPrice(),
+                    "quantity", (Object) item.getQuantity(),
+                    "status", item.getStatus(),
+                    "subtotal", (Object) (item.getQuantity() * item.getMenuItem().getPrice())
+            );
+            return map;
+        }).collect(Collectors.toList());
+
+        double total = items.stream()
+                .mapToDouble(item -> item.getQuantity() * item.getMenuItem().getPrice())
+                .sum();
+
+        return Map.of(
+                "orderId", latestOrder.getId(),
+                "status", latestOrder.getStatus(),
+                "tableId", tableId,
+                "items", itemList,
+                "total", total
+        );
+    }
+
+    public Map<String, Object> getBillByTable(Integer tableId) {
+        List<OrderEntity> orders = orderRepository.findByTableId(tableId);
+        double total = orders.stream()
+                .flatMap(order -> order.getItems().stream())
+                .mapToDouble(item -> item.getMenuItem().getPrice() * item.getQuantity())
+                .sum();
+
+        return Map.of("tableId", tableId, "total", total);
+    }
+
+    public Map<String, Object> clearOrdersByTable(Integer tableId) {
+        List<OrderEntity> orders = orderRepository.findByTableId(tableId);
+        for (OrderEntity order : orders) {
+            orderItemRepository.deleteAll(order.getItems());
+        }
+        orderRepository.deleteAll(orders);
+
+        return Map.of("message", "เคลียร์ออเดอร์ของโต๊ะ " + tableId + " แล้ว");
     }
 
 

@@ -14,6 +14,7 @@ import java.util.List;
 public class RestaurantTableService {
 
     private final RestaurantTableRepository tableRepository;
+    @Autowired
     private final OrderItemRepository orderItemRepository;
 
     public RestaurantTableService(RestaurantTableRepository tableRepository,

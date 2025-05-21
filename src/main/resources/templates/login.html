@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>เข้าสู่ระบบ</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(to bottom, #f3e7d3, #f5d9c2); /* พื้นหลังฟิล์มส้มหม่น */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: #fffaf5;
+            border: 1px solid #dba48c; /* ขอบส้มฟิล์ม */
+            border-radius: 12px;
+            padding: 30px 40px;
+            box-shadow: 0 5px 20px rgba(139, 69, 19, 0.1); /* เงาสีน้ำตาลอ่อน */
+            width: 320px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #7a2e2e; /* แดงหม่น */
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #a85734; /* ส้มหม่น */
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #c9a28f;
+            border-radius: 8px;
+            background-color: #fffdfb;
+        }
+
+        button {
+            background-color: #a85734; /* ปุ่มส้มหม่น */
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #8a3f25; /* เฉดเข้มตอน hover */
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #a94442; /* แดงหม่น error */
+        }
+
+        .logout {
+            color: #3c763d; /* เขียวฟ้าอ่อน */
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>กรุณาเข้าสู่ระบบ</h2>
+
+    <form th:action="@{/login}" method="post">
+        <div>
+            <label for="username">ชื่อผู้ใช้</label>
+            <input type="text" name="username" id="username" required />
+        </div>
+        <div>
+            <label for="password">รหัสผ่าน</label>
+            <input type="password" name="password" id="password" required />
+        </div>
+        <div>
+            <button type="submit">เข้าสู่ระบบ</button>
+        </div>
+    </form>
+
+    <div class="message error" th:if="${param.error}">
+        ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+    </div>
+
+    <div class="message logout" th:if="${param.logout}">
+        ออกจากระบบเรียบร้อยแล้ว
+    </div>
+</div>
+</body>
+</html>
