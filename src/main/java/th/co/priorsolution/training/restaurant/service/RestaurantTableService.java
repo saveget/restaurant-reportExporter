@@ -40,9 +40,6 @@ public class RestaurantTableService {
         tableRepository.save(table);
     }
 
-    @Autowired
-    private RestaurantTableRepository RestaurantTableRepository;
-
     @Transactional
     public void setStatus(Integer tableId, String newStatus) {
         RestaurantTableEntity table = tableRepository.findById(tableId)

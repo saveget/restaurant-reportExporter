@@ -30,21 +30,12 @@ public class AuthRestController {
         this.jwtUtil = jwtUtil;
     }
 
-    // Login API: รับ username/password, authenticate, สร้าง access + refresh token พร้อมเก็บ refresh token
     @PostMapping("/login")
     public ResponseEntity<RefreshTokenResponse> login(@RequestBody UserDTO.AuthRequest authRequest) {
-        // authenticate user (เรียก service จริงจัง)
-        authenticationService.authenticate(authRequest.getUsername(), authRequest.getPassword());
-
-        // สร้าง token
-        String accessToken = jwtUtil.generateToken(authRequest.getUsername(), "USER_ROLE"); // กำหนด role จริง ๆ จาก DB
-        String refreshToken = jwtUtil.generateRefreshToken(authRequest.getUsername());
-
-        // เก็บ refresh token
-        tokenService.storeRefreshToken(authRequest.getUsername(), refreshToken);
-
-        return ResponseEntity.ok(new RefreshTokenResponse(accessToken, refreshToken));
+        RefreshTokenResponse tokens = authenticationService.login(authRequest.getUsername(), authRequest.getPassword());
+        return ResponseEntity.ok(tokens);
     }
+
 
     // Refresh token API: รับ refresh token, ตรวจสอบ, สร้าง access + refresh token ใหม่
     @PostMapping("/refresh-token")
