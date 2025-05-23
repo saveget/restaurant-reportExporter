@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${errorTitle}">Access Denied</title>
+    <style>
+        body {
+            background-color: #fff5f5; /* สีแดงอ่อน ๆ ที่สบายตา */
+            color: #a94442; /* สีแดงเข้มสำหรับข้อความ */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #f2dede; /* สีแดงอ่อนกว่าพื้นหลังนิดหน่อย */
+            border: 1px solid #ebccd1; /* เส้นขอบสีแดงจาง ๆ */
+            border-radius: 8px;
+            padding: 30px 40px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(169, 68, 66, 0.2);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        a {
+            display: inline-block;
+            background-color: #a94442; /* สีแดงเข้ม */
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(169, 68, 66, 0.4);
+        }
+
+        a:hover {
+            background-color: #922d2d; /* สีแดงเข้มขึ้นเมื่อ hover */
+            box-shadow: 0 4px 10px rgba(146, 45, 45, 0.6);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 th:text="${errorTitle}">Access Denied</h1>
+    <p th:text="${errorMessage}">คุณไม่ได้รับสิทธิ์ให้เข้าถึงข้อมูลนี้</p>
+    <a th:href="@{${homeUrl}}">กลับหน้าหลัก</a>
+</div>
+</body>
+</html>

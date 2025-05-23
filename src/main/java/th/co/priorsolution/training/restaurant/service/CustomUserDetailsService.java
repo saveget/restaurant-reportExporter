@@ -1,16 +1,12 @@
 package th.co.priorsolution.training.restaurant.service;
 
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import th.co.priorsolution.training.restaurant.entity.UserEntity;
 import th.co.priorsolution.training.restaurant.repository.UserRepository;
-
-import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -23,14 +19,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity user = userRepository.findByName(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        String roleUpper = user.getRole().toUpperCase(); // แปลง role เป็นตัวใหญ่
+        String roleUpper = user.getRole().toUpperCase();
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getName())
-                .password(user.getPassword())  // password เป็น plain text
-                .roles(roleUpper)  // แปลง role เป็น uppercase ให้ตรงกับ SecurityConfig
+                .password(user.getPassword())  // password ต้องเป็น BCrypt hash ที่เก็บใน DB
+                .roles(roleUpper)
                 .build();
     }
-
 }
-

@@ -1,4 +1,4 @@
-package th.co.priorsolution.training.restaurant.controller.rest;
+package th.co.priorsolution.training.restaurant.controller.view;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,5 +1,6 @@
 package th.co.priorsolution.training.restaurant.controller.rest;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import th.co.priorsolution.training.restaurant.entity.OrderEntity;
@@ -21,7 +22,7 @@ public class OrderRestController {
     private OrderService orderService;
 
     @PostMapping
-    public Map<String, Object> createOrder(@RequestBody OrderRequestDTO orderRequest) {
+    public Map<String, Object> createOrder(@Valid @RequestBody OrderRequestDTO orderRequest) {
         OrderEntity order = orderService.createOrder(orderRequest);
         return Map.of("message", "สร้างออเดอร์สำเร็จ", "orderId", order.getId());
     }

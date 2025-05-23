@@ -1,10 +1,12 @@
 package th.co.priorsolution.training.restaurant.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import th.co.priorsolution.training.restaurant.entity.UserEntity;
 import th.co.priorsolution.training.restaurant.repository.UserRepository;
@@ -20,6 +22,9 @@ public class UserService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByName(username)
@@ -27,7 +32,7 @@ public class UserService implements UserDetailsService {
 
         return new User(
                 user.getName(),
-                user.getPassword(), // รหัสผ่าน plain text
+                user.getPassword(), // รหัสผ่านที่ถูกเข้ารหัสด้วย BCrypt
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()))
         );
     }
@@ -41,7 +46,7 @@ public class UserService implements UserDetailsService {
         // id เป็น Integer auto generated -> ไม่ต้องเซ็ต id เอง
 
         user.setName(username);
-        user.setPassword(password);  // ใส่ password ตรงๆ
+        user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
 
         return userRepository.save(user);

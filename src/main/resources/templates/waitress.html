@@ -178,8 +178,8 @@
           card.appendChild(header);
 
           const statusText = document.createElement("p");
-          statusText.className = "status " + (table.status === "occupied" ? "occupied" : "");
-          statusText.textContent = `สถานะ: ${table.status === "occupied" ? "ไม่ว่าง" : "ว่าง"}`;
+          statusText.className = "status " + (table.status === "OCCUPIED" ? "occupied" : "");
+          statusText.textContent = `สถานะ: ${table.status === "OCCUPIED" ? "ไม่ว่าง" : "ว่าง"}`;
           card.appendChild(statusText);
 
           const toggleBtn = document.createElement("button");
@@ -359,15 +359,6 @@
         container.innerHTML = "เกิดข้อผิดพลาด: " + err.message;
       }
     }
-
-    async function refreshTablesPeriodically() {
-      await loadTables(); // โหลดตอนแรก
-      setInterval(loadTables, 5000); // ทุก 5 วินาทีจะเรียก loadTables ใหม่
-    }
-
-    // เรียกตอนเริ่ม
-    refreshTablesPeriodically();
-
 
     loadTables();
 </script>

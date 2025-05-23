@@ -10,10 +10,22 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import th.co.priorsolution.training.restaurant.security.JwtAuthenticationEntryPoint;
+import th.co.priorsolution.training.restaurant.security.JwtAuthenticationFilter;
 import th.co.priorsolution.training.restaurant.service.CustomUserDetailsService;
 
 @Configuration
 public class SecurityConfig {
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -21,13 +33,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/login",
+                                "/api/auth/login",
                                 "/login",
                                 "/css/**",
                                 "/js/**",
-                                "/app/",           // อนุญาตหน้า index
-                                "/app/index",      // อนุญาตหน้า index
-                                "/app/customer"    // หากคุณมีหน้า customer แยก
+                                "/app/",
+                                "/app/index",
+                                "/app/customer"
                         ).permitAll()
 
                         .requestMatchers("/app/waitress/**").hasRole("WAITRESS")
@@ -48,20 +60,14 @@ public class SecurityConfig {
                                     .map(auth -> auth.getAuthority())
                                     .orElse("");
 
-                            if ("ROLE_WAITRESS".equals(role)) {
-                                response.sendRedirect("/app/waitress");
-                            } else if ("ROLE_CHEF_GRILL".equals(role)) {
-                                response.sendRedirect("/app/kitchen/grill");
-                            } else if ("ROLE_CHEF_SALAD".equals(role)) {
-                                response.sendRedirect("/app/kitchen/salad");
-                            } else if ("ROLE_CHEF_BEVERAGE".equals(role)) {
-                                response.sendRedirect("/app/kitchen/beverage");
-                            } else if ("ROLE_CHEF_PASTA".equals(role)) {
-                                response.sendRedirect("/app/kitchen/pasta");
-                            } else if ("ROLE_CUSTOMER".equals(role)) {
-                                response.sendRedirect("/app/");
-                            } else {
-                                response.sendRedirect("/app/");
+                            switch (role) {
+                                case "ROLE_WAITRESS" -> response.sendRedirect("/app/waitress");
+                                case "ROLE_CHEF_GRILL" -> response.sendRedirect("/app/kitchen/grill");
+                                case "ROLE_CHEF_SALAD" -> response.sendRedirect("/app/kitchen/salad");
+                                case "ROLE_CHEF_BEVERAGE" -> response.sendRedirect("/app/kitchen/beverage");
+                                case "ROLE_CHEF_PASTA" -> response.sendRedirect("/app/kitchen/pasta");
+                                case "ROLE_CUSTOMER" -> response.sendRedirect("/app/");
+                                default -> response.sendRedirect("/app/");
                             }
                         })
                         .failureUrl("/login?error=true")
@@ -75,23 +81,22 @@ public class SecurityConfig {
                 )
 
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendRedirect("/login");
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            // Redirect ไปหน้า error แบบ HTML
+                            response.sendRedirect("/error/access-denied");
                         })
-                );
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-
-    // เปลี่ยนตรงนี้
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();  // เปลี่ยนจาก NoOp
     }
-
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -101,7 +106,4 @@ public class SecurityConfig {
                 .and()
                 .build();
     }
-
-
-
 }

@@ -31,10 +31,10 @@ public class RestaurantTableService {
         RestaurantTableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new RuntimeException("ไม่พบโต๊ะที่ระบุ"));
 
-        if ("available".equals(table.getStatus())) {
-            table.setStatus("occupied");
+        if ("AVAILABLE".equals(table.getStatus())) {
+            table.setStatus("OCCUPIED");
         } else {
-            table.setStatus("available");
+            table.setStatus("AVAILABLE");
         }
 
         tableRepository.save(table);

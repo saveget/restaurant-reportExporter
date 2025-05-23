@@ -2,6 +2,7 @@ package th.co.priorsolution.training.restaurant.controller.rest;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import th.co.priorsolution.training.restaurant.entity.OrderEntity;
 import th.co.priorsolution.training.restaurant.entity.OrderItemEntity;
@@ -35,5 +36,15 @@ public class WaitressRestController {
     @PostMapping("/reset/{tableId}")
     public Map<String, String> resetTable(@PathVariable Integer tableId) {
         return waitressService.resetTable(tableId);
+    }
+
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return Map.of(
+                "error", "Invalid Input",
+                "message", ex.getMessage()
+        );
     }
 }

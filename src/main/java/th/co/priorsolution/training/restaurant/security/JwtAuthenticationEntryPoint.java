@@ -17,8 +17,17 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletRequest request,
             HttpServletResponse response,
             AuthenticationException authException
-    ) throws IOException, ServletException {
-        // เมื่อไม่ authenticated ให้ตอบ 401 Unauthorized
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized: Authentication token was either missing or invalid.");
+    ) throws IOException {
+        String path = request.getServletPath();
+        if (path.startsWith("/api/")) {
+            // สำหรับ API ส่ง JSON 401
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Authentication token was either missing or invalid.\"}");
+        } else {
+            // สำหรับเว็บ redirect ไปหน้า login
+            response.sendRedirect("/login");
+        }
     }
 }

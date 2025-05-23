@@ -63,7 +63,7 @@ public class WaitressService {
             orderRepository.delete(order);
         }
 
-        tableService.setStatus(tableId, "available");
+        tableService.setStatus(tableId, "AVAILABLE");
 
         return Map.of("message", "ล้างออเดอร์และเคลียร์โต๊ะเรียบร้อยแล้ว");
     }

@@ -6,15 +6,14 @@ import lombok.Data;
 public class UserDTO {
 
     @Data
-    public class AuthRequest {
+    public static class AuthRequest {
         private String username;
         private String password;
     }
 
     @Data
     @AllArgsConstructor
-    public class AuthResponse {
+    public static class AuthResponse {
         private String jwt;
     }
-
 }

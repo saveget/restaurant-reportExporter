@@ -1,12 +1,19 @@
 package th.co.priorsolution.training.restaurant.model.DTO;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class OrderRequestDTO {
-    private Integer tableId;
-    private List<OrderItemDTO> items;
-}
 
+    @NotNull(message = "tableId ต้องไม่เป็นค่าว่าง")
+    private Integer tableId;
+
+    @NotEmpty(message = "items ต้องมีอย่างน้อย 1 รายการ")
+    @Valid // สำคัญ! เพื่อให้ validation ใน OrderItemDTO ทำงานด้วย
+    private List<@Valid OrderItemDTO> items;
+}

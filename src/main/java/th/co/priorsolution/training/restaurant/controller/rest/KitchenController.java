@@ -16,8 +16,11 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class KitchenController {
 
-    @Autowired
-    private KitchenService kitchenService;
+    private final KitchenService kitchenService;
+
+    public KitchenController(KitchenService kitchenService) {
+        this.kitchenService = kitchenService;
+    }
 
     @GetMapping("/orders")
     public List<OrderItemEntity> getOrdersByStation(@RequestParam String station) {
@@ -29,6 +32,4 @@ public class KitchenController {
                                                      @RequestBody Map<String, String> body) {
         return kitchenService.updateOrderItemStatus(id, body.get("status"));
     }
-
-
 }
