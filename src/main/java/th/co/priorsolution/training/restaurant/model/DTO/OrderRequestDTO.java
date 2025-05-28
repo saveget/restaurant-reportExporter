@@ -14,6 +14,5 @@ public class OrderRequestDTO {
     private Integer tableId;
 
     @NotEmpty(message = "items ต้องมีอย่างน้อย 1 รายการ")
-    @Valid // สำคัญ! เพื่อให้ validation ใน OrderItemDTO ทำงานด้วย
-    private List<@Valid OrderItemDTO> items;
+    private List<@NotNull OrderItemRequestDTO> items;
 }

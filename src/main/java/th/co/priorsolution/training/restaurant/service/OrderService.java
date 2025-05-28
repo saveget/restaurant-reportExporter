@@ -7,8 +7,8 @@ import th.co.priorsolution.training.restaurant.entity.MenuItemEntity;
 import th.co.priorsolution.training.restaurant.entity.OrderEntity;
 import th.co.priorsolution.training.restaurant.entity.OrderItemEntity;
 import th.co.priorsolution.training.restaurant.entity.RestaurantTableEntity;
-import th.co.priorsolution.training.restaurant.model.DTO.OrderItemDTO;
-import th.co.priorsolution.training.restaurant.model.DTO.OrderRequestDTO;
+import th.co.priorsolution.training.restaurant.model.DTO.*;
+import th.co.priorsolution.training.restaurant.model.DTO.OrderItemRequestDTO;
 import th.co.priorsolution.training.restaurant.repository.MenuItemRepository;
 import th.co.priorsolution.training.restaurant.repository.OrderItemRepository;
 import th.co.priorsolution.training.restaurant.repository.OrderRepository;
@@ -59,7 +59,7 @@ public class OrderService {
         // สร้าง OrderItemEntities
         List<OrderItemEntity> orderItems = new ArrayList<>();
 
-        for (OrderItemDTO itemDTO : orderRequest.getItems()) {
+        for (OrderItemRequestDTO itemDTO : orderRequest.getItems()) {
             System.out.println("กำลังโหลดเมนู id: " + itemDTO.getMenuItemId());
 
             MenuItemEntity menuItem = menuItemRepository.findById(itemDTO.getMenuItemId())
@@ -156,25 +156,60 @@ public class OrderService {
         );
     }
 
-    public Map<String, Object> getBillByTable(Integer tableId) {
-        List<OrderEntity> orders = orderRepository.findByTableId(tableId);
-        double total = orders.stream()
-                .flatMap(order -> order.getItems().stream())
-                .mapToDouble(item -> item.getMenuItem().getPrice() * item.getQuantity())
-                .sum();
 
-        return Map.of("tableId", tableId, "total", total);
+    public List<OrderResponseDTO> getOrdersResponseByTable(Integer tableId) {
+        List<OrderEntity> orders = orderRepository.findByTableId(tableId);
+        return orders.stream().map(order -> {
+            OrderResponseDTO dto = new OrderResponseDTO();
+            dto.setOrderId(order.getId());
+            dto.setTableId(order.getTable().getId());
+            dto.setStatus(order.getStatus());
+
+            List<OrderItemResponseDTO> itemDTOs = order.getItems().stream().map(item ->
+                    new OrderItemResponseDTO(
+                            item.getId(),
+                            item.getMenuItem().getName(),
+                            item.getQuantity(),
+                            item.getStatus(),
+                            item.getStation()
+                    )
+            ).collect(Collectors.toList());
+
+            dto.setItems(itemDTOs);
+            return dto;
+        }).collect(Collectors.toList());
     }
 
-    public Map<String, Object> clearOrdersByTable(Integer tableId) {
+    public List<OrderDetailDTO> getAllOrderDetailsByTable(Integer tableId) {
         List<OrderEntity> orders = orderRepository.findByTableId(tableId);
-        for (OrderEntity order : orders) {
-            orderItemRepository.deleteAll(order.getItems());
+        if (orders.isEmpty()) {
+            throw new RuntimeException("ไม่พบคำสั่งซื้อของโต๊ะนี้");
         }
-        orderRepository.deleteAll(orders);
 
-        return Map.of("message", "เคลียร์ออเดอร์ของโต๊ะ " + tableId + " แล้ว");
+        return orders.stream().map(order -> {
+            List<OrderItemEntity> items = orderItemRepository.findByOrder_Id(order.getId());
+            List<OrderItemDTO> itemDTOs = items.stream().map(item -> new OrderItemDTO(
+                    item.getMenuItem().getName(),
+                    item.getMenuItem().getPrice(),
+                    item.getQuantity(),
+                    item.getStatus(),
+                    item.getQuantity() * item.getMenuItem().getPrice()
+            )).collect(Collectors.toList());
+
+            double total = itemDTOs.stream().mapToDouble(OrderItemDTO::getSubtotal).sum();
+
+            return new OrderDetailDTO(
+                    order.getId(),
+                    order.getStatus(),
+                    tableId,
+                    itemDTOs,
+                    total
+            );
+        }).collect(Collectors.toList());
     }
+
+
+
 
 
 

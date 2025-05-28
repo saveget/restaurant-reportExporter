@@ -3,6 +3,8 @@ package th.co.priorsolution.training.restaurant.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import th.co.priorsolution.training.restaurant.entity.OrderItemEntity;
+import th.co.priorsolution.training.restaurant.model.DTO.OrderItemResponseDTO;
+import th.co.priorsolution.training.restaurant.model.DTO.OrderItemStatusUpdateResponseDTO;
 import th.co.priorsolution.training.restaurant.repository.OrderItemRepository;
 import th.co.priorsolution.training.restaurant.repository.OrderRepository;
 
@@ -19,11 +21,21 @@ public class KitchenService {
     @Autowired
     private OrderRepository orderRepository;
 
-    public List<OrderItemEntity> getOrdersByStation(String station) {
-        return orderItemRepository.findByStationAndStatusIn(station, List.of("pending", "preparing"));
+    public List<OrderItemResponseDTO> getOrdersByStation(String station) {
+        return orderItemRepository.findByStationAndStatusIn(station, List.of("pending", "preparing"))
+                .stream()
+                .map(item -> new OrderItemResponseDTO(
+                        item.getId(),
+                        item.getMenuItem().getName(),
+                        item.getQuantity(),
+                        item.getStatus(),
+                        item.getStation()
+                ))
+                .toList();
     }
 
-    public Map<String, Object> updateOrderItemStatus(Integer id, String status) {
+
+    public OrderItemStatusUpdateResponseDTO updateOrderItemStatus(Integer id, String status) {
         if (!List.of("pending", "preparing", "done").contains(status)) {
             throw new IllegalArgumentException("สถานะไม่ถูกต้อง");
         }
@@ -51,6 +63,7 @@ public class KitchenService {
 
         orderRepository.save(order);
 
-        return Map.of("message", "อัพเดตสถานะเรียบร้อย", "orderItemId", id, "status", status);
+        return new OrderItemStatusUpdateResponseDTO("อัพเดตสถานะเรียบร้อย", id, status);
     }
+
 }

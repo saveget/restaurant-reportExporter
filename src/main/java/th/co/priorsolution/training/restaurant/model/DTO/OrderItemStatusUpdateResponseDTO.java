@@ -5,10 +5,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class OrderItemDTO {
-    private String menuName;
-    private double price;
-    private int quantity;
+public class OrderItemStatusUpdateResponseDTO {
+    private String message;
+    private Integer orderItemId;
     private String status;
-    private double subtotal;
 }

@@ -39,7 +39,10 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/app/",
                                 "/app/index",
-                                "/app/customer"
+                                "/api/waitress/orders/1",
+                                "api/kitchen/orders/**",
+                                "api/order/**",
+                                "/api/waitress/bill/**"
                         ).permitAll()
 
                         .requestMatchers("/app/waitress/**").hasRole("WAITRESS")

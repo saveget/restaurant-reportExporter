@@ -17,13 +17,13 @@ import java.util.List;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    // constructor injection ครบทั้งสองตัว
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -32,7 +32,7 @@ public class UserService implements UserDetailsService {
 
         return new User(
                 user.getName(),
-                user.getPassword(), // รหัสผ่านที่ถูกเข้ารหัสด้วย BCrypt
+                user.getPassword(),
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()))
         );
     }
@@ -43,8 +43,6 @@ public class UserService implements UserDetailsService {
         }
 
         UserEntity user = new UserEntity();
-        // id เป็น Integer auto generated -> ไม่ต้องเซ็ต id เอง
-
         user.setName(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);

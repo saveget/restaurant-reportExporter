@@ -170,17 +170,17 @@
             data.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                  <td data-label="Order Item ID">${item.id}</td>
-                  <td data-label="Menu">${item.menuItem.name}</td>
-                  <td data-label="Quantity">${item.quantity}</td>
-                  <td data-label="หมายเลขโต๊ะ">${item.tableNumber}</td>
-                  <td data-label="Status">${item.status}</td>
-                  <td data-label="อัปเดตสถานะ">
-                    ${item.status === 'pending' ? `<button onclick="updateStatus(${item.id}, 'preparing')">เริ่มทำ</button>` : ''}
-                    ${item.status === 'preparing' ? `<button onclick="updateStatus(${item.id}, 'done')">เสร็จแล้ว</button>` : ''}
-                    ${item.status === 'done' ? 'เสร็จแล้ว' : ''}
-                  </td>
-                `;
+              <td data-label="Order Item ID">${item.id}</td>
+              <td data-label="Menu">${item.menuName}</td>
+              <td data-label="Quantity">${item.quantity}</td>
+              <td data-label="หมายเลขโต๊ะ">${item.tableNumber ?? ''}</td>
+              <td data-label="Status">${item.status}</td>
+              <td data-label="อัปเดตสถานะ">
+                ${item.status === 'pending' ? `<button onclick="updateStatus(${item.id}, 'preparing')">เริ่มทำ</button>` : ''}
+                ${item.status === 'preparing' ? `<button onclick="updateStatus(${item.id}, 'done')">เสร็จแล้ว</button>` : ''}
+                ${item.status === 'done' ? 'เสร็จแล้ว' : ''}
+              </td>
+            `;
                 tbody.appendChild(tr);
             });
         }

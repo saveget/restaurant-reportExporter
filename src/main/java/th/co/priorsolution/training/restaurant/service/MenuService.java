@@ -2,6 +2,7 @@ package th.co.priorsolution.training.restaurant.service;
 
 import org.springframework.stereotype.Service;
 import th.co.priorsolution.training.restaurant.entity.MenuItemEntity;
+import th.co.priorsolution.training.restaurant.model.DTO.MenuItemDTO;
 import th.co.priorsolution.training.restaurant.repository.MenuItemRepository;
 import java.util.List;
 import java.awt.*;
@@ -15,8 +16,18 @@ public class MenuService {
         this.menuItemRepository = menuItemRepository;
     }
 
-    public List<MenuItemEntity> getAvailableMenuItems() {
-        return menuItemRepository.findByIsAvailableTrue();
+    public List<MenuItemDTO> getAvailableMenuItems() {
+        return menuItemRepository.findByIsAvailableTrue()
+                .stream()
+                .map(entity -> new MenuItemDTO(
+                        entity.getId(),
+                        entity.getName(),
+                        entity.getCategory(),
+                        entity.getPrice(),
+                        entity.getIsAvailable()
+                ))
+                .toList();
     }
+
 
 }

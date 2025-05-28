@@ -100,20 +100,6 @@
             box-shadow: none;
         }
 
-        #table-list {
-            margin-bottom: 30px;
-        }
-        #table-list button {
-            background: #ffa726; /* เหลืองส้ม */
-            font-weight: 700;
-            font-size: 1rem;
-            width: 100px;
-            box-shadow: 0 3px 6px rgba(255, 167, 38, 0.6);
-        }
-        #table-list button:hover:not(:disabled) {
-            background: #fb8c00; /* เหลืองส้มเข้ม */
-        }
-
         #order-details {
             background: #fff3e0; /* เหลืองครีมอ่อนเหมือนการ์ด */
             padding: 20px 25px;
@@ -141,10 +127,6 @@
                 width: 100%;
                 max-width: 350px;
             }
-            #table-list button {
-                width: 80px;
-                margin-bottom: 10px;
-            }
         }
     </style>
 </head>
@@ -157,7 +139,6 @@
 <div id="order-details"></div>
 
 <script>
-    // โหลดข้อมูลโต๊ะทั้งหมด พร้อมรายการอาหารและปุ่มจัดการ
     async function loadTables() {
       const container = document.getElementById("table-container");
       container.innerHTML = "กำลังโหลดข้อมูลโต๊ะ...";
@@ -191,51 +172,53 @@
           };
           card.appendChild(toggleBtn);
 
+          // ดึง order สำหรับโต๊ะนี้ (ได้เป็น array ของ orders)
           try {
             const orderRes = await fetch(`/api/order/details/by-table/${table.id}`);
             if (orderRes.ok) {
-              const orderData = await orderRes.json();
+              const orders = await orderRes.json();
 
-              if (orderData.items && orderData.items.length > 0) {
+              if (orders.length > 0) {
+                // รวมรายการอาหารทั้งหมดในหลาย order มาแสดง
                 const list = document.createElement("ul");
-               orderData.items.forEach(item => {
-                  const li = document.createElement("li");
-                  li.style.marginBottom = "10px"; // เว้นบรรทัดหน่อย
 
-                  // ชื่อเมนู + จำนวน + ราคา
-                  const itemInfo = document.createElement("div");
-                  itemInfo.textContent = `${item.menuName} x ${item.quantity} = ${item.subtotal} บาท`;
-                  li.appendChild(itemInfo);
+                orders.forEach(order => {
+                  order.items.forEach(item => {
+                    const li = document.createElement("li");
+                    li.style.marginBottom = "10px";
 
-                  // สถานะ แยกบรรทัดล่าง
-                  const statusLine = document.createElement("div");
-                  statusLine.textContent = `สถานะ: ${item.status}`;
-                  statusLine.style.fontSize = "0.9rem";
-                  statusLine.style.color = "#d84315"; // สีแดงส้ม (เปลี่ยนสีตามชอบได้)
-                  li.appendChild(statusLine);
+                    const itemInfo = document.createElement("div");
+                    itemInfo.textContent = `${item.menuName} x ${item.quantity} = ${item.subtotal} บาท`;
+                    li.appendChild(itemInfo);
 
-                  list.appendChild(li);
+                    const statusLine = document.createElement("div");
+                    statusLine.textContent = `สถานะ: ${item.status}`;
+                    statusLine.style.fontSize = "0.9rem";
+                    statusLine.style.color = "#d84315";
+                    li.appendChild(statusLine);
+
+                    list.appendChild(li);
+                  });
                 });
-
                 card.appendChild(list);
 
-                const total = document.createElement("p");
-                total.innerHTML = `<strong>รวมทั้งหมด: ${orderData.total} บาท</strong>`;
-                card.appendChild(total);
+                // รวม total ของทุก order
+                const total = orders.reduce((sum, order) => sum + order.total, 0);
+                const totalP = document.createElement("p");
+                totalP.innerHTML = `<strong>รวมทั้งหมด: ${total} บาท</strong>`;
+                card.appendChild(totalP);
 
-                // ปุ่มออกใบเสร็จ เปลี่ยนเป็นแสดงใน div ด้านล่าง ไม่ใช่ alert
+                // ปุ่มออกใบเสร็จ
                 const billBtn = document.createElement("button");
                 billBtn.textContent = "ออกใบเสร็จ";
-                billBtn.onclick = () => {
-                  showBill(table.id);
-                };
+                billBtn.onclick = () => showBill(table.id);
                 card.appendChild(billBtn);
 
                 // ปุ่มเคลียร์โต๊ะ
                 const clearBtn = document.createElement("button");
                 clearBtn.textContent = "เคลียร์โต๊ะ";
                 clearBtn.onclick = async () => {
-                  if (confirm(`คุณแน่ใจจะเคลียร์โต๊ะ ${table.id} หรือไม่?`)) {
+                  if (confirm(`คุณแน่ใจจะเคลียร์โต๊ะ ${table.tableNum} หรือไม่?`)) {
                     clearBtn.disabled = true;
                     await clearTable(table.id);
                     clearBtn.disabled = false;
@@ -260,7 +243,6 @@
 
           container.appendChild(card);
         }
-
       } catch (err) {
         container.innerHTML = "เกิดข้อผิดพลาด: " + err.message;
       }
@@ -285,7 +267,7 @@
       alert(`ล้างออเดอร์โต๊ะ ${tableId} เรียบร้อยแล้ว`);
       await loadTables();
 
-      // ถ้าแสดงรายละเอียดโต๊ะนั้นอยู่ ให้เคลียร์รายละเอียดออกด้วย
+      // เคลียร์รายละเอียดใบเสร็จถ้าแสดงอยู่
       const orderDetails = document.getElementById("order-details");
       const currentHeader = orderDetails.querySelector("h3");
       if (currentHeader && currentHeader.textContent.includes(`โต๊ะ ${tableId}`)) {
@@ -293,72 +275,40 @@
       }
     }
 
-    async function loadTableDetails(tableId) {
-      const container = document.getElementById("order-details");
-      container.innerHTML = "กำลังโหลดข้อมูลโต๊ะ " + tableId + "...";
-
-      try {
-        const res = await fetch(`/api/order/details/by-table/${tableId}`);
-        if (!res.ok) throw new Error("โหลดข้อมูลไม่สำเร็จ");
-
-        const data = await res.json();
-
-        let html = `<h3>รายละเอียดโต๊ะ ${tableId} - สถานะ: ${data.status || 'ว่าง'}</h3>`;
-
-        if (data.items && data.items.length > 0) {
-          html += "<ul>";
-          data.items.forEach(item => {
-          html += `<li>
-            <div>${item.menuName} x ${item.quantity} = ${item.subtotal} บาท</div>
-            <div style="font-size:0.9rem; color:#d84315;">สถานะ: ${item.status}</div>
-          </li>`;
-        });
-
-          html += "</ul>";
-          html += `<p><strong>รวมทั้งหมด: ${data.total} บาท</strong></p>`;
-        } else {
-          html += "<p>โต๊ะว่าง ไม่มีรายการอาหาร</p>";
-        }
-
-        container.innerHTML = html;
-
-      } catch (err) {
-        container.innerHTML = "เกิดข้อผิดพลาด: " + err.message;
-      }
-    }
-
-    // ฟังก์ชันแสดงใบเสร็จแทน alert
     async function showBill(tableId) {
-      const container = document.getElementById("order-details");
+  const container = document.getElementById("order-details");
 
-      try {
-        const res = await fetch(`/api/order/details/by-table/${tableId}`);
-        if (!res.ok) throw new Error("โหลดข้อมูลใบเสร็จไม่สำเร็จ");
+  try {
+    const res = await fetch(`/api/order/details/by-table/${tableId}`);
+    if (!res.ok) throw new Error("โหลดข้อมูลใบเสร็จไม่สำเร็จ");
 
-        const data = await res.json();
+    const orders = await res.json();
 
-        let html = `<h3>ใบเสร็จโต๊ะ ${tableId}</h3>`;
+    let html = `<h3>ใบเสร็จโต๊ะ ${tableId}</h3>`;
 
-        if (data.items && data.items.length > 0) {
-          html += "<ul>";
-          data.items.forEach(item => {
-          html += `<li>
-            <div>${item.menuName} x ${item.quantity} = ${item.subtotal} บาท</div>
-          </li>`;
-        });
-
-          html += "</ul>";
-          html += `<p><strong>รวมทั้งหมด: ${data.total} บาท</strong></p>`;
-        } else {
-          html += "<p>ไม่มีรายการอาหารสำหรับใบเสร็จ</p>";
-        }
-
-        container.innerHTML = html;
-
-      } catch (err) {
-        container.innerHTML = "เกิดข้อผิดพลาด: " + err.message;
-      }
+    if (orders.length === 0) {
+      html += "<p>ยังไม่มีรายการสั่งอาหาร</p>";
+      container.innerHTML = html;
+      return;
     }
+
+    orders.forEach(order => {
+      html += "<ul>";
+      order.items.forEach(item => {
+        html += `<li>${item.menuName} x ${item.quantity} = ${item.subtotal} บาท </li>`;
+      });
+      html += "</ul>";
+    });
+
+    const grandTotal = orders.reduce((sum, o) => sum + o.total, 0);
+    html += `<p><strong>ยอดรวมทั้งหมดของโต๊ะ: ${grandTotal} บาท</strong></p>`;
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = "เกิดข้อผิดพลาดในการโหลดใบเสร็จ: " + e.message;
+  }
+}
+
 
     loadTables();
 </script>

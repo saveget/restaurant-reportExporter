@@ -1,10 +1,15 @@
 package th.co.priorsolution.training.restaurant;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+
+
 class RestaurantApplicationTests {
+
+	@Test
+	public void test_resetTable_wrongTable(){
+
+	}
 
 	@Test
 	void contextLoads() {

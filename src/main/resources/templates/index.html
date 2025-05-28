@@ -516,103 +516,82 @@
         setTimeout(checkOrderStatus, 10000);
     }
 
-   async function loadOrdersByTable(tableId) {
-    try {
-        const response = await fetch(`http://localhost:8080/api/order/by-table/${tableId}`);
-        if (!response.ok) throw new Error('โหลดคำสั่งซื้อโต๊ะล้มเหลว');
-        const orders = await response.json();
+  async function loadOrdersByTable(tableId) {
+  try {
+    const response = await fetch(`http://localhost:8080/api/order/details/by-table/${tableId}`);
+    if (!response.ok) throw new Error('โหลดคำสั่งซื้อโต๊ะล้มเหลว');
+    const orders = await response.json();  // ตอนนี้เป็น array ของ orders
 
-        const container = document.getElementById('table-orders-list');
-        container.innerHTML = '';
+    const container = document.getElementById('table-orders-list');
+    container.innerHTML = '';
 
-        if (orders.length === 0) {
-            container.innerHTML = '<p>โต๊ะนี้ยังไม่มีคำสั่งซื้อ</p>';
-            document.getElementById('order-status-text').textContent = 'ยังไม่มีคำสั่งซื้อ';
-            currentOrderId = null;
-
-            // ซ่อนยอดรวม
-            document.getElementById('total-section').style.display = 'none';
-            return;
-        }
-
-        let grandTotal = 0;  // เก็บยอดรวมทั้งหมดของทุกคำสั่งซื้อ
-
-        orders.forEach(order => {
-            const orderDiv = document.createElement('div');
-            orderDiv.style.marginBottom = '1rem';
-
-            let total = 0;
-            let itemsHtml = '';
-
-            if (order.items && order.items.length > 0) {
-                order.items.forEach(item => {
-                    const price = item.menuItem.price;
-                    const name = item.menuItem.name;
-                    const quantity = item.quantity;
-                    const subtotal = price * quantity;
-                    total += subtotal;
-                });
-            }
-
-            grandTotal += total;  // รวมยอดทั้งหมด
-
-            // สร้างตารางแสดงรายการอาหารของคำสั่งซื้อ
-            order.items.forEach(item => {
-                const price = item.menuItem.price;
-                const name = item.menuItem.name;
-                const quantity = item.quantity;
-                const subtotal = price * quantity;
-
-                itemsHtml += `
-                    <tr>
-                        <td>${name}</td>
-                        <td>${price} บาท</td>
-                        <td>${quantity}</td>
-                        <td>${subtotal} บาท</td>
-                    </tr>
-                `;
-            });
-
-            orderDiv.innerHTML = `
-                <h3>คำสั่งซื้อ #${order.id} - สถานะ: ${order.status}</h3>
-                <table border="1" cellpadding="5" cellspacing="0" style="width: 100%; margin-bottom: 0.5rem;">
-                    <thead>
-                        <tr>
-                            <th>ชื่อเมนู</th>
-                            <th>ราคา</th>
-                            <th>จำนวน</th>
-                            <th>รวม</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHtml}
-                    </tbody>
-                </table>
-                <strong>รวมทั้งหมด: ${total} บาท</strong>
-            `;
-
-            container.appendChild(orderDiv);
-        });
-
-        // แสดงยอดรวมทั้งหมด
-        const totalSection = document.getElementById('total-section');
-        const totalAmount = document.getElementById('total-amount');
-        totalAmount.textContent = grandTotal;
-        totalSection.style.display = 'block';
-
-        const latestOrder = orders[orders.length - 1];
-        currentOrderId = latestOrder.id;
-        checkOrderStatus();
-
-    } catch (error) {
-        console.error(error);
-        const container = document.getElementById('table-orders-list');
-        container.innerHTML = '<p>ไม่สามารถโหลดคำสั่งซื้อโต๊ะได้</p>';
-
-        // ซ่อนยอดรวม
-        document.getElementById('total-section').style.display = 'none';
+    if (!orders || orders.length === 0) {
+      container.innerHTML = '<p>โต๊ะนี้ยังไม่มีคำสั่งซื้อ</p>';
+      document.getElementById('order-status-text').textContent = 'ยังไม่มีคำสั่งซื้อ';
+      currentOrderId = null;
+      document.getElementById('total-section').style.display = 'none';
+      return;
     }
+
+    let allOrdersHtml = '';
+
+    orders.forEach(order => {
+      let itemsHtml = '';
+      order.items.forEach(item => {
+        itemsHtml += `
+          <tr>
+            <td>${item.menuName}</td>
+            <td>${item.price} บาท</td>
+            <td>${item.quantity}</td>
+            <td>${item.subtotal} บาท</td>
+            <td>${item.status}</td>
+          </tr>
+        `;
+      });
+
+      allOrdersHtml += `
+        <div class="order-block" style="margin-bottom: 2rem; border: 1px solid #ccc; padding: 1rem;">
+          <h3>คำสั่งซื้อ #${order.orderId} - สถานะ: ${order.status}</h3>
+          <table border="1" cellpadding="5" cellspacing="0" style="width: 100%; margin-bottom: 0.5rem;">
+            <thead>
+              <tr>
+                <th>ชื่อเมนู</th>
+                <th>ราคา/หน่วย</th>
+                <th>จำนวน</th>
+                <th>รวม</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          <strong>ยอดรวมทั้งหมด: ${order.total} บาท</strong>
+        </div>
+      `;
+    });
+
+    container.innerHTML = allOrdersHtml;
+
+    // ถ้าต้องการแสดงสถานะรวม/ยอดรวมทั้งหมดของทุก order
+    const totalSum = orders.reduce((sum, order) => sum + order.total, 0);
+    document.getElementById('total-section').style.display = 'block';
+    document.getElementById('total-amount').textContent = totalSum;
+    document.getElementById('order-status-text').textContent = `แสดง ${orders.length} คำสั่งซื้อ, ยอดรวมทั้งหมด ${totalSum} บาท`;
+
+    // คุณอาจจะปรับ currentOrderId ให้เป็น order ล่าสุดหรือไม่ก็ได้
+    currentOrderId = orders[orders.length - 1].orderId;
+
+    checkOrderStatus();
+
+  } catch (error) {
+    console.error(error);
+    const container = document.getElementById('table-orders-list');
+    container.innerHTML = '<p>ไม่สามารถโหลดคำสั่งซื้อโต๊ะได้</p>';
+    document.getElementById('total-section').style.display = 'none';
+  }
 }
+
 
 
 

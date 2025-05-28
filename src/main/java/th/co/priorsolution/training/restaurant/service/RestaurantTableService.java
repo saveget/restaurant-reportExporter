@@ -14,7 +14,6 @@ import java.util.List;
 public class RestaurantTableService {
 
     private final RestaurantTableRepository tableRepository;
-    @Autowired
     private final OrderItemRepository orderItemRepository;
 
     public RestaurantTableService(RestaurantTableRepository tableRepository,
@@ -46,8 +45,7 @@ public class RestaurantTableService {
                 .orElseThrow(() -> new RuntimeException("ไม่พบโต๊ะ id " + tableId));
 
         table.setStatus(newStatus);
-        tableRepository.save(table);  // <== สำคัญ ต้องบันทึก!
+        tableRepository.save(table);
     }
 }
-
 
