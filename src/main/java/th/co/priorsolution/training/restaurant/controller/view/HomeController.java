@@ -33,6 +33,11 @@ public class HomeController {
         return "waitress";  // จะโหลดจาก templates
     }
 
+    @GetMapping("/manager")
+    public String managerPage() {
+        return "manager";  // จะโหลดจาก templates
+    }
+
 
 }
 

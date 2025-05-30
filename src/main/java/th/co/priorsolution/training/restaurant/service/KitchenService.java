@@ -55,6 +55,9 @@ public class KitchenService {
         var order = item.getOrder();
         if (allDone) {
             order.setStatus("done");
+            if (order.getServeTime() == null) {
+                order.setServeTime(java.time.LocalDateTime.now());
+            }
         } else if (anyPreparing) {
             order.setStatus("preparing");
         } else {

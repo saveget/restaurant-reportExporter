@@ -102,6 +102,7 @@ public class OrderService {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         order.setStatus(newStatus);
+
         orderRepository.save(order); // สำคัญ!!
     }
 
@@ -207,6 +208,42 @@ public class OrderService {
             );
         }).collect(Collectors.toList());
     }
+
+    public List<OrderReportDTO> getAllOrderReports() {
+        List<OrderEntity> orders = orderRepository.findAll();
+
+        return orders.stream().map(order -> {
+            OrderReportDTO dto = new OrderReportDTO();
+            dto.setOrderId(order.getId());
+            dto.setTableName(order.getTable().getTableNum());  // หรือ getName() ขึ้นกับ entity ของโต๊ะ
+            dto.setStatus(order.getStatus());
+            dto.setOrderTime(order.getOrderTime());
+            dto.setServeTime(order.getServeTime());
+
+            List<OrderItemReportDTO> items = order.getItems().stream().map(item -> {
+                OrderItemReportDTO itemDTO = new OrderItemReportDTO();
+                itemDTO.setMenuName(item.getMenuItem().getName());
+                itemDTO.setQuantity(item.getQuantity());
+                itemDTO.setPrice(item.getMenuItem().getPrice());  // เพิ่ม price
+                itemDTO.setStatus(item.getStatus());
+                itemDTO.setStation(item.getStation());
+                itemDTO.setSubtotal(item.getQuantity() * item.getMenuItem().getPrice());  // เพิ่ม subtotal
+                return itemDTO;
+            }).collect(Collectors.toList());
+
+            dto.setItems(items);
+
+            double totalAmount = items.stream()
+                    .mapToDouble(OrderItemReportDTO::getSubtotal)
+                    .sum();
+
+            dto.setTotalAmount(totalAmount);
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+
 
 
 

@@ -15,6 +15,8 @@ public class RoleRedirectService {
 
         if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_WAITRESS"))) {
             return "/app/waitress";
+        } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"))) {
+            return "/app/manager";
         } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_CHEF_GRILL"))) {
             return "/app/kitchen/grill";
         } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_CHEF_PASTA"))) {

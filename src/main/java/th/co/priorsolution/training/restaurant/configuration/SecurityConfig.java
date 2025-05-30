@@ -38,11 +38,7 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/app/",
-                                "/app/index",
-                                "/api/waitress/orders/1",
-                                "api/kitchen/orders/**",
-                                "api/order/**",
-                                "/api/waitress/bill/**"
+                                "/app/index"
                         ).permitAll()
 
                         .requestMatchers("/app/waitress/**").hasRole("WAITRESS")
@@ -50,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/app/kitchen/salad/**").hasRole("CHEF_SALAD")
                         .requestMatchers("/app/kitchen/beverage/**").hasRole("CHEF_BEVERAGE")
                         .requestMatchers("/app/kitchen/pasta/**").hasRole("CHEF_PASTA")
+                        .requestMatchers("/app/manager/**").hasRole("MANAGER")
 
                         .anyRequest().authenticated()
                 )
@@ -65,6 +62,7 @@ public class SecurityConfig {
 
                             switch (role) {
                                 case "ROLE_WAITRESS" -> response.sendRedirect("/app/waitress");
+                                case "ROLE_MANAGER" -> response.sendRedirect("/app/manager");
                                 case "ROLE_CHEF_GRILL" -> response.sendRedirect("/app/kitchen/grill");
                                 case "ROLE_CHEF_SALAD" -> response.sendRedirect("/app/kitchen/salad");
                                 case "ROLE_CHEF_BEVERAGE" -> response.sendRedirect("/app/kitchen/beverage");
